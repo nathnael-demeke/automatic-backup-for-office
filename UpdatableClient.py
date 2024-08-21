@@ -76,8 +76,9 @@ for data in selected_directories:
     full_message = upload_selected_folder_json(directory_path=directory_path, directory_name=directory_name)
     message_to_backup_server["DirectoriesData"].append(full_message)
 
-
-print(message_to_backup_server)
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.connect(("127.0.0.1", 19))
+server.send(bytes(str(message_to_backup_server), "utf-8"))
 
 
 

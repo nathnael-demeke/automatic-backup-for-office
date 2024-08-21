@@ -6,9 +6,14 @@ clients = [
 ]
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-full_data = None
+server.bind(("localhost", 19))
+server.listen(2)
+full_data = ""
+cli, addr = server.accept()
 while True: 
-    chunk = server.recv(1024)
-    full_data += chunk
+    chunk = cli.recv(1024)
+    if (len(chunk) == 0):
+        break
+    full_data += chunk.decode("utf-8")
 
 print(full_data)
