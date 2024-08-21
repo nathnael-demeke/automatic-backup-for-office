@@ -22,7 +22,7 @@ def upload_sub_folder_json(main_directory,sub_folder):
                     with open(f"{directory}\\{file}", "rb") as f:
                         file_bytes = f.read()
                         file_base64 = base64.urlsafe_b64encode(file_bytes)
-                        file_formmated_message = {file: file_base64}
+                        file_formmated_message = {file: str(file_base64)}
                         formatted_message[sub_folder_name]["files"].append(file_formmated_message)    
             index = 0
             for folder in formatted_message[sub_folder_name]["folders"]:
@@ -49,7 +49,7 @@ def upload_selected_folder_json(directory_path, directory_name):
             with open(f"{directory}\\{file}", "rb") as f:
                 file_bytes = f.read()
                 file_base64 = base64.urlsafe_b64encode(file_bytes)
-                file_formmated_message = {file: file_base64}
+                file_formmated_message = {file: str(file_base64)}
                 formatted_message[directory]["files"].append(file_formmated_message)
     index = 0
     for folder in formatted_message[directory_name]["folders"]:
@@ -78,7 +78,8 @@ for data in selected_directories:
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.connect(("127.0.0.1", 19))
-server.send(bytes(str(message_to_backup_server), "utf-8"))
+server.send(bytes(json.dumps(message_to_backup_server),"utf-8"))
+
 
 
 
