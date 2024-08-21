@@ -2,7 +2,9 @@ import socket
 import json 
 import os
 import base64
+import time
 
+then = time.time()
 clients = [
     "192.168.8.120"
 ]
@@ -10,14 +12,25 @@ clients = [
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(("localhost", 19))
 server.listen(2)
+
+server_name = "Nathnael Demeke"
+server_selected_directories = [
+    {"directory_path": r"C:\\Users\\Hp\\Desktop\\softwares\\automatic-backup-for-office\\adugna", "directory_name": ""}
+]
+
+def move_all_server_folders():
+    for folder in server_selected_directories:
+        directory_path = folder["directory_path"]
+        directory_name = folder["directory_name"]
+
 def get_message_from_client():
     full_data = ""
     cli, addr = server.accept()
     while True: 
-        chunk = cli.recv(1024)
-        if (len(chunk) == 0):
-            break
+        chunk = cli.recv(100024)
         full_data += chunk.decode("utf-8")
+        if (len(chunk) == 0):
+            break        
     return full_data
 
 full_message = json.loads(f"{get_message_from_client()}")
@@ -54,8 +67,12 @@ def download_directory_data(main_directory,directory_data):
     folders = directory_data[main_directory]["folders"]
     index = 0
     for folder in folders:
-            folder_name = list(folder.keys())[0]  
-            download_sub_directory_data(os.path.abspath(f"./{main_directory_path}"),directory_data[main_directory]["folders"][index])
+            try:
+                 folder_name = list(folder.keys())[0]  
+                 download_sub_directory_data(os.path.abspath(f"./{main_directory_path}"),directory_data[main_directory]["folders"][index])
+            except: 
+                pass
+        
             index += 1
     for file in files:
         file_name = list(file.keys())[0]
@@ -68,5 +85,8 @@ if (message_type == "updateFoldersData"):
     directories_data = full_message["DirectoriesData"]
     for directory_data in directories_data:
         download_directory_data(list(directory_data.keys())[0],directory_data)
+    
+    now = time.time()
+    print(now - then)
         
         
