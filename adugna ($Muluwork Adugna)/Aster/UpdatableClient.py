@@ -2,7 +2,6 @@ import socket
 import json 
 import os
 import base64
-import time
 
 def upload_sub_folder_json(main_directory,sub_folder): 
         try: 
@@ -45,19 +44,13 @@ def upload_selected_folder_json(directory_path, directory_name):
     #getting bytes of each file in the directory
     for file in files:
         if file.find(".") == -1:
-            try: 
-               formatted_message[directory_name]["folders"].append({file: {}})
-            except:
-                pass
+            formatted_message[directory_name]["folders"].append({file: {}})
         else:
-            try:
-                with open(f"{directory_path}\\{file}", "rb") as f:
-                    file_bytes = f.read()
-                    file_base64 = base64.urlsafe_b64encode(file_bytes)
-                    file_formmated_message = {file: file_base64.decode("utf-8")}
-                    formatted_message[directory_name]["files"].append(file_formmated_message)
-            except:
-                pass
+            with open(f"{directory_path}\\{file}", "rb") as f:
+                file_bytes = f.read()
+                file_base64 = base64.urlsafe_b64encode(file_bytes)
+                file_formmated_message = {file: file_base64.decode("utf-8")}
+                formatted_message[directory_name]["files"].append(file_formmated_message)
     index = 0
     for folder in formatted_message[directory_name]["folders"]:
         sub_folder_data = upload_sub_folder_json(directory_path,folder)
@@ -70,8 +63,7 @@ def upload_selected_folder_json(directory_path, directory_name):
     
 client_name = "Muluwork Adugna"
 selected_directories = [
-    {"directory_path": r"C:\\Users\\Hp\\Desktop\\softwares\\automatic-backup-for-office\\adugna", "directory_name": "adugna"},
-    # {"directory_path": r"C:\\Users\\Hp\\Desktop\\softwares\\meketa\\build","directory_name": "build"},
+    {"directory_path": r"C:\\Users\\Hp\\Desktop\\softwares\\automatic-backup-for-office\\adugna", "directory_name": "adugna"}
 ]
 message_to_backup_server = {
     "MessageType": "updateFoldersData",
@@ -87,17 +79,6 @@ for data in selected_directories:
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.connect(("127.0.0.1", 19))
 server.send(bytes(json.dumps(message_to_backup_server),"utf-8"))
-server.close()
-get_backup_message = {"MessageType": "getUpdatedBackup", "ClientName": client_name}
-time.sleep(5)
-while True: 
-    second_request_server = socket.socket()
-    second_request_server.connect(("localhost", 19))
-    second_request_server.sendall(bytes(json.dumps(get_backup_message), "utf-8"))
-    second_request_server.close()
-    print("sent")
-    time.sleep(3)
-
 
 
 
