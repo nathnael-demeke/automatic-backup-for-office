@@ -21,6 +21,7 @@ server_name = "Nathnael Demeke"
 server_selected_directories = [
     {"directory_path": r"C:\\Users\\Hp\\Desktop\\websites\\nodejs", "directory_name": "trials"}
 ]
+current_dir_path = os.path.dirname(__file__).replace("\\", "\\\\")
 def move_all_server_folders():
     for folder in server_selected_directories:
         directory_path = folder["directory_path"]
@@ -50,7 +51,6 @@ def create_folder(folder_path):
         os.makedirs(folder_path)
     except OSError as error:
         pass
-
 
 def download_sub_directory_data(main_directory,directory_data):
         sub_directory_folder_name = list(directory_data.keys())[0]
@@ -119,10 +119,10 @@ def upload_sub_folder_json(main_directory,sub_folder):
             return formatted_message
         except Exception as error:
             print(error)
-
-       
-            
-def upload_selected_folder_json(directory_path, directory_name):
+ 
+def upload_backup_folder_json():
+    directory_path = current_dir_path
+    directory_name = "backup folder"
     files = os.listdir(directory_path)
     formatted_message = {directory_name: {
         "folders": [],
@@ -136,14 +136,15 @@ def upload_selected_folder_json(directory_path, directory_name):
             except:
                 pass
         else:
-            try:
-                with open(f"{directory_path}\\{file}", "rb") as f:
-                    file_bytes = f.read()
-                    file_base64 = base64.urlsafe_b64encode(file_bytes)
-                    file_formmated_message = {file: file_base64.decode("utf-8")}
-                    formatted_message[directory_name]["files"].append(file_formmated_message)
-            except:
-                pass
+            pass
+            # try:
+            #     with open(f"{directory_path}\\{file}", "rb") as f:
+            #         file_bytes = f.read()
+            #         file_base64 = base64.urlsafe_b64encode(file_bytes)
+            #         file_formmated_message = {file: file_base64.decode("utf-8")}
+            #         formatted_message[directory_name]["files"].append(file_formmated_message)
+            # except:
+            #     pass
     index = 0
     for folder in formatted_message[directory_name]["folders"]:
         sub_folder_data = upload_sub_folder_json(directory_path,folder)
@@ -178,7 +179,7 @@ def serve_user(client):
 
 
 pool = ThreadPoolExecutor(4)
-
+print(upload_backup_folder_json())
 while True: 
     cli, addr = server.accept()
     pool.submit(serve_user,cli)
