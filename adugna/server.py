@@ -1,6 +1,8 @@
 import socket 
 import json 
 import os
+import base64
+
 clients = [
     "192.168.8.120"
 ]
@@ -35,11 +37,14 @@ def download_sub_directory_data(main_directory,directory_data):
         index = 0
         for folder in folders: 
             download_sub_directory_data(f"{main_directory}\\{sub_directory_folder_name}", directory_data[sub_directory_folder_name]["folders"][index])
-            for file in files:
-                print(file)
             index += 1
-            
-    
+        for file in files:
+            file_name = list(file.keys())[0]
+            file_base64 = file[file_name]
+            file_bytes = base64.urlsafe_b64decode(file_base64)
+            with open(f"{main_directory}\\{sub_directory_folder_name}\\{file_name}", "wb") as f:
+                f.write(file_bytes)
+
 
 def download_directory_data(main_directory,directory_data):
     main_directory = list(directory_data.keys())[0]
@@ -52,14 +57,15 @@ def download_directory_data(main_directory,directory_data):
             folder_name = list(folder.keys())[0]  
             download_sub_directory_data(os.path.abspath(f"./{main_directory_path}"),directory_data[main_directory]["folders"][index])
             index += 1
-            for file in files:
-                print(file)
-            
-        
-        
+    for file in files:
+        file_name = list(file.keys())[0]
+        file_base64 = file[file_name]
+        file_bytes = base64.urlsafe_b64decode(file_base64)
+        with open(f"{main_directory}\\{file_name}", "wb") as f:
+                f.write(file_bytes)
+      
 if (message_type == "updateFoldersData"):
     directories_data = full_message["DirectoriesData"]
-    print(directories_data)
     for directory_data in directories_data:
         download_directory_data(list(directory_data.keys())[0],directory_data)
         
