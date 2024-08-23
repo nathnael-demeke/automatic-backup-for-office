@@ -15,8 +15,11 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(("localhost", 19))
 server.listen(2)
 
+
 backup_finished = False
-print("server Started")
+clients_quantity = 1
+clients_backuped = 0
+backuped_data_json = None
 server_name = "Nathnael Demeke"
 server_selected_directories = [
     {"directory_path": r"C:\\Users\\Hp\\Desktop\\websites\\nodejs", "directory_name": "trials"}
@@ -91,6 +94,7 @@ def download_directory_data(main_directory,directory_data, client_name):
         with open(f"{main_directory_path}\\{file_name}", "wb") as f:
                 f.write(file_bytes)
 def upload_sub_folder_json(main_directory,sub_folder): 
+        global backuped_data_json
         try: 
             sub_folder_name = list(sub_folder.keys())[0]
             directory = f"{main_directory}\\{sub_folder_name}"
@@ -100,7 +104,7 @@ def upload_sub_folder_json(main_directory,sub_folder):
                 "files": []
             }}
             for file in files:
-                if file.find(".") == -1:
+                if os.path.isdir(f"{main_directory}\\{sub_folder_name}\\{file}"):
                     formatted_message[sub_folder_name]["folders"].append({file: {
                         "folders": [],
                         "files": []
@@ -121,6 +125,7 @@ def upload_sub_folder_json(main_directory,sub_folder):
             print(error)
  
 def upload_backup_folder_json():
+    global backuped_data_json
     directory_path = current_dir_path
     directory_name = "backup folder"
     files = os.listdir(directory_path)
@@ -137,26 +142,20 @@ def upload_backup_folder_json():
                 pass
         else:
             pass
-            # try:
-            #     with open(f"{directory_path}\\{file}", "rb") as f:
-            #         file_bytes = f.read()
-            #         file_base64 = base64.urlsafe_b64encode(file_bytes)
-            #         file_formmated_message = {file: file_base64.decode("utf-8")}
-            #         formatted_message[directory_name]["files"].append(file_formmated_message)
-            # except:
-            #     pass
     index = 0
     for folder in formatted_message[directory_name]["folders"]:
         sub_folder_data = upload_sub_folder_json(directory_path,folder)
         formatted_message[directory_name]["folders"][index] = sub_folder_data
         index += 1
 
-    return formatted_message
+    backuped_data_json = formatted_message
         
 
     
 
 def serve_user(client):
+    global clients_backuped
+    now = time.time()
     full_message = json.loads(get_message_from_client(client))
     client_name = full_message["ClientName"]
     message_type = full_message["MessageType"]
@@ -168,21 +167,35 @@ def serve_user(client):
         for directory_data in directories_data:
             print(client_name)
             download_directory_data(list(directory_data.keys())[0],directory_data,client_name)
-        move_all_server_folders()
-        now = time.time()
+        clients_backuped += 1
         print(now - then)
-
-    
     elif message_type == "getUpdatedBackup":
-        print("data")
+        if backuped_data_json:
+            client.send(bytes(json.dumps(backuped_data_json), "utf-8"))
+            print("client backuped")
+        else:
+            not_finished_message = {"MessageType": "notFinished"}
+            client.send(bytes(json.dumps(not_finished_message), "utf-8"))
+
     client.close()
 
 
-pool = ThreadPoolExecutor(4)
-print(upload_backup_folder_json())
+pool = ThreadPoolExecutor(clients_quantity * 2)
+backup_worker = ThreadPoolExecutor(1)
+
+def upload_backup_to_ram():
+    global backup_finished
+    move_all_server_folders()
+    upload_backup_folder_json()
+    backup_finished = True
+    print("backup finished")
+
 while True: 
+    print(clients_backuped)
+    if (clients_quantity == clients_backuped) and (backup_finished == False):
+        backup_worker.submit(upload_backup_to_ram)
     cli, addr = server.accept()
-    pool.submit(serve_user,cli)
+    worker = pool.submit(serve_user,cli)
    
         
         
