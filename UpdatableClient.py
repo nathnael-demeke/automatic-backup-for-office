@@ -4,6 +4,7 @@ import os
 import base64
 import time
 
+current_dir_path = os.path.dirname(__file__).replace("\\", "\\\\")
 def upload_sub_folder_json(main_directory,sub_folder): 
         try: 
             sub_folder_name = list(sub_folder.keys())[0]
@@ -65,7 +66,46 @@ def upload_selected_folder_json(directory_path, directory_name):
         index += 1
 
     return formatted_message
+
+def download_sub_directory_data(main_directory,directory_data):
+        sub_directory_folder_name = list(directory_data.keys())[0]
+        files = directory_data[sub_directory_folder_name]["files"]
+        folders = directory_data[sub_directory_folder_name]["folders"]
+        create_folder(f"{main_directory}\\{sub_directory_folder_name}")
+        index = 0
+        for folder in folders: 
+            download_sub_directory_data(f"{main_directory}\\{sub_directory_folder_name}", directory_data[sub_directory_folder_name]["folders"][index])
+            index += 1
+        for file in files:
+            file_name = list(file.keys())[0]
+            file_base64 = file[file_name]
+            file_bytes = base64.urlsafe_b64decode(file_base64)
+            with open(f"{main_directory}\\{sub_directory_folder_name}\\{file_name}", "wb") as f:
+                f.write(file_bytes)
+
+
+def download_directory_data(directory_data):
+    main_directory = current_dir_path
+    main_directory = list(directory_data.keys())[0]
+    main_directory_path = fr"{main_directory}"
+    create_folder(main_directory_path)
+    files = directory_data[main_directory]["files"]
+    folders = directory_data[main_directory]["folders"]
+    index = 0
+    for folder in folders:
+            try:
+                 folder_name = list(folder.keys())[0]  
+                 download_sub_directory_data(os.path.abspath(f"./{main_directory_path}"),directory_data[main_directory]["folders"][index])
+            except: 
+                pass
         
+            index += 1
+    for file in files:
+        file_name = list(file.keys())[0]
+        file_base64 = file[file_name]
+        file_bytes = base64.urlsafe_b64decode(file_base64)
+        with open(f"{main_directory_path}\\{file_name}", "wb") as f:
+                f.write(file_bytes)  
 
     
 client_name = "Muluwork Adugna"
@@ -94,7 +134,16 @@ while True:
         second_request_server = socket.socket()
         second_request_server.connect(("localhost", 19))
         second_request_server.sendall(bytes(json.dumps(get_backup_message), "utf-8"))
-        second_request_server.recv(1024)
+        full_message = ""
+        while True:
+            chunk = second_request_server.recv(1024).decode("utf-8")
+            if len(chunk) == 0:
+                break
+        response = json.loads(full_message)
+        if response["MessageType"] == "notFinished":
+            pass
+        elif response["MessageType"] == "downloadBackup":
+            pass
         second_request_server.close()
         print("sent")
         time.sleep(3)

@@ -171,7 +171,8 @@ def serve_user(client):
         print(now - then)
     elif message_type == "getUpdatedBackup":
         if backuped_data_json:
-            client.send(bytes(json.dumps(backuped_data_json), "utf-8"))
+            response = {"MessageType": "downloadBackup", "Message": backuped_data_json}
+            client.send(bytes(json.dumps(response), "utf-8"))
             print("client backuped")
         else:
             not_finished_message = {"MessageType": "notFinished"}
