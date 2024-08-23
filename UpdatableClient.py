@@ -14,7 +14,7 @@ def upload_sub_folder_json(main_directory,sub_folder):
                 "files": []
             }}
             for file in files:
-                if file.find(".") == -1:
+                if os.path.isdir(f"{main_directory}\\{sub_folder_name}\\{file}"):
                     formatted_message[sub_folder_name]["folders"].append({file: {
                         "folders": [],
                         "files": []
@@ -91,12 +91,15 @@ server.close()
 get_backup_message = {"MessageType": "getUpdatedBackup", "ClientName": client_name}
 time.sleep(5)
 while True: 
-    second_request_server = socket.socket()
-    second_request_server.connect(("localhost", 19))
-    second_request_server.sendall(bytes(json.dumps(get_backup_message), "utf-8"))
-    second_request_server.close()
-    print("sent")
-    time.sleep(3)
+        second_request_server = socket.socket()
+        second_request_server.connect(("localhost", 19))
+        second_request_server.sendall(bytes(json.dumps(get_backup_message), "utf-8"))
+        second_request_server.recv(1024)
+        second_request_server.close()
+        print("sent")
+        time.sleep(3)
+
+   
 
 
 
