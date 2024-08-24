@@ -44,10 +44,10 @@ def move_all_server_folders():
 def get_message_from_client(cli):
     full_data = ""
     while True: 
-        chunk = cli.recv(1024)
-        full_data += chunk.decode("utf-8")
-        if (len(chunk) == 0):
+        chunk = cli.recv(1024).decode("utf-8")
+        if chunk == "break" or (len(chunk) == 0):
             break  
+        full_data += chunk
     return full_data
 def create_folder(folder_path):
     try:
@@ -155,6 +155,7 @@ def upload_backup_folder_json():
 
 def serve_user(client):
     global clients_backuped
+    
     now = time.time()
     full_message = json.loads(get_message_from_client(client))
     client_name = full_message["ClientName"]
@@ -168,15 +169,17 @@ def serve_user(client):
             print(client_name)
             download_directory_data(list(directory_data.keys())[0],directory_data,client_name)
         clients_backuped += 1
-        print(now - then)
     elif message_type == "getUpdatedBackup":
+        print("message got")
         if backuped_data_json:
-            client.send(bytes(json.dumps(backuped_data_json), "utf-8"))
+            response = {"MessageType": "downloadBackup", "Message": backuped_data_json}
+            client.send(bytes(json.dumps(response), "utf-8"))
             print("client backuped")
         else:
             not_finished_message = {"MessageType": "notFinished"}
             client.send(bytes(json.dumps(not_finished_message), "utf-8"))
-
+    else:
+        print("unkown request")
     client.close()
 
 
@@ -191,11 +194,13 @@ def upload_backup_to_ram():
     print("backup finished")
 
 while True: 
-    print(clients_backuped)
     if (clients_quantity == clients_backuped) and (backup_finished == False):
         backup_worker.submit(upload_backup_to_ram)
     cli, addr = server.accept()
     worker = pool.submit(serve_user,cli)
+    print("result " + str(worker.result()))
+    
+
    
         
         
