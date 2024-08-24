@@ -5,6 +5,11 @@ import base64
 import time
 
 current_dir_path = os.path.dirname(__file__).replace("\\", "\\\\")
+def create_folder(folder_path):
+    try:
+        os.makedirs(folder_path)
+    except OSError as error:
+        pass
 def upload_sub_folder_json(main_directory,sub_folder): 
         try: 
             sub_folder_name = list(sub_folder.keys())[0]
@@ -85,7 +90,7 @@ def download_sub_directory_data(main_directory,directory_data):
 
 
 def download_directory_data(directory_data):
-    main_directory = current_dir_path
+    main_directory = current_dir_path + "\\adugna"
     main_directory = list(directory_data.keys())[0]
     main_directory_path = fr"{main_directory}"
     create_folder(main_directory_path)
@@ -109,10 +114,7 @@ def download_directory_data(directory_data):
 
     
 client_name = "Muluwork Adugna"
-selected_directories = [
-    {"directory_path": r"C:\\Users\\Hp\\Desktop\\softwares\\automatic-backup-for-office\\adugna", "directory_name": "adugna"},
-    # {"directory_path": r"C:\\Users\\Hp\\Desktop\\softwares\\meketa\\build","directory_name": "build"},
-]
+selected_directories = [ {"directory_path": r"C:\\Users\\Hp\\Desktop\\softwares\\automatic-backup-for-office\\adugna", "directory_name": "adugna"} ]
 message_to_backup_server = {
     "MessageType": "updateFoldersData",
     "ClientName": client_name,
@@ -133,20 +135,26 @@ time.sleep(5)
 while True: 
         second_request_server = socket.socket()
         second_request_server.connect(("localhost", 19))
-        second_request_server.sendall(bytes(json.dumps(get_backup_message), "utf-8"))
+        second_request_server.send(bytes(json.dumps(get_backup_message), "utf-8"))
+        time.sleep(1)
+        second_request_server.send(bytes("break", "utf-8"))
         full_message = ""
         while True:
             chunk = second_request_server.recv(1024).decode("utf-8")
             if len(chunk) == 0:
                 break
+            full_message += chunk
         response = json.loads(full_message)
         if response["MessageType"] == "notFinished":
-            pass
+            print("not finished")
         elif response["MessageType"] == "downloadBackup":
-            pass
+            download_directory_data(response["Message"])
+            break
+        
         second_request_server.close()
-        print("sent")
         time.sleep(3)
+   
+
 
    
 
