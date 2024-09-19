@@ -12,7 +12,7 @@ clients = [
 ]
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(("localhost", 19))
+server.bind(("localhost", 80))
 server.listen(2)
 
 
@@ -49,6 +49,7 @@ def get_message_from_client(cli):
             break  
         full_data += chunk
     return full_data
+
 def create_folder(folder_path):
     try:
         os.makedirs(folder_path)
@@ -93,6 +94,7 @@ def download_directory_data(main_directory,directory_data, client_name):
         file_bytes = base64.urlsafe_b64decode(file_base64)
         with open(f"{main_directory_path}\\{file_name}", "wb") as f:
                 f.write(file_bytes)
+    print(f"{main_directory_path} file downloaded")
 def upload_sub_folder_json(main_directory,sub_folder): 
         global backuped_data_json
         try: 
@@ -149,13 +151,9 @@ def upload_backup_folder_json():
         index += 1
 
     backuped_data_json = formatted_message
-        
-
-    
 
 def serve_user(client):
     global clients_backuped
-    
     now = time.time()
     full_message = json.loads(get_message_from_client(client))
     client_name = full_message["ClientName"]
@@ -199,8 +197,3 @@ while True:
     cli, addr = server.accept()
     worker = pool.submit(serve_user,cli)
     print("result " + str(worker.result()))
-    
-
-   
-        
-        
