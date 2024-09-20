@@ -37,6 +37,7 @@ def upload_sub_folder_json(main_directory,sub_folder):
                 formatted_response = upload_sub_folder_json(directory,folder)
                 formatted_message[sub_folder_name]["folders"][index] = formatted_response
                 index += 1
+            print(f"{sub_folder_name} sub folder uploaded")
             return formatted_message
         except Exception as error:
             print(error)
@@ -70,7 +71,7 @@ def upload_selected_folder_json(directory_path, directory_name):
         sub_folder_data = upload_sub_folder_json(directory_path,folder)
         formatted_message[directory_name]["folders"][index] = sub_folder_data
         index += 1
-
+    print(f"{directory_name} folder uploaded")
     return formatted_message
 
 def download_sub_directory_data(main_directory,directory_data):
@@ -112,7 +113,7 @@ def download_directory_data(directory_data):
         file_bytes = base64.urlsafe_b64decode(file_base64)
         with open(f"{main_directory_path}\\{file_name}", "wb") as f:
                 f.write(file_bytes)  
-
+    print(f"{main_directory} downloaded")
     
 client_name = "Muluwork Adugna"
 selected_directories = [ {"directory_path": r"C:\\Users\\Hp\\Desktop\\softwares\\automatic-backup-for-office\\adugna", "directory_name": "adugna"} ]
@@ -127,20 +128,17 @@ for data in selected_directories:
     full_message = upload_selected_folder_json(directory_path=directory_path, directory_name=directory_name)
     message_to_backup_server["DirectoriesData"].append(full_message)
 
-while True:
-    try:
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.connect(("127.0.0.1", 19))
-        server.send(bytes(json.dumps(message_to_backup_server),"utf-8"))
-        server.close()
-        break
-    except Exception as error: 
-        pass
+server_address = "localhost"
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.connect((server_address, 80))
+server.send(bytes(json.dumps(message_to_backup_server),"utf-8"))
+server.close()
 get_backup_message = {"MessageType": "getUpdatedBackup", "ClientName": client_name}
 time.sleep(5)
+
 while True: 
         second_request_server = socket.socket()
-        second_request_server.connect(("localhost", 19))
+        second_request_server.connect((server_address, 80))
         second_request_server.send(bytes(json.dumps(get_backup_message), "utf-8"))
         time.sleep(1)
         second_request_server.send(bytes("break", "utf-8"))
@@ -156,7 +154,6 @@ while True:
         elif response["MessageType"] == "downloadBackup":
             download_directory_data(response["Message"])
             break
-        
         second_request_server.close()
         time.sleep(3)
    
