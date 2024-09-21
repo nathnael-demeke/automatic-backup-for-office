@@ -5,7 +5,9 @@ import base64
 import time
 
 current_dir_path = os.path.dirname(__file__).replace("\\", "\\\\")
-server_address = "localhost"
+selected_directories = [ {"directory_path": r"C:\\Users\\Hp\\Desktop\\softwares\\automatic-backup-for-office\\adugna", "directory_name": "adugna"} ]
+client_name = "Muluwork Adugna"
+server_address = "192.168.8.123"
 def create_folder(folder_path):
     try:
         os.makedirs(folder_path)
@@ -114,9 +116,6 @@ def download_directory_data(directory_data):
         with open(f"{main_directory_path}\\{file_name}", "wb") as f:
                 f.write(file_bytes)  
     print(f"{main_directory} downloaded")
-    
-client_name = "Muluwork Adugna"
-selected_directories = [ {"directory_path": r"C:\\Users\\Hp\\Desktop\\softwares\\automatic-backup-for-office\\adugna", "directory_name": "adugna"} ]
 message_to_backup_server = {
     "MessageType": "updateFoldersData",
     "ClientName": client_name,
@@ -128,16 +127,20 @@ for data in selected_directories:
     full_message = upload_selected_folder_json(directory_path=directory_path, directory_name=directory_name)
     message_to_backup_server["DirectoriesData"].append(full_message)
 
-server_address = "localhost"
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.connect((server_address, 80))
-server.send(bytes(json.dumps(message_to_backup_server),"utf-8"))
-server.close()
-get_backup_message = {"MessageType": "getUpdatedBackup", "ClientName": client_name}
-time.sleep(5)
-
+while True:
+    try: 
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.connect((server_address, 80))
+        server.send(bytes(json.dumps(message_to_backup_server),"utf-8"))
+        server.close()
+        get_backup_message = {"MessageType": "getUpdatedBackup", "ClientName": client_name}
+        time.sleep(5)
+        break
+    except Exception as error:
+        time.sleep(1.4)
 while True: 
         second_request_server = socket.socket()
+        print("hello")
         second_request_server.connect((server_address, 80))
         second_request_server.send(bytes(json.dumps(get_backup_message), "utf-8"))
         time.sleep(1)

@@ -12,7 +12,8 @@ clients = [
 ]
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(("0.0.0.0", 19))
+server.bind(("0.0.0.0", 80))
+
 server.listen(2)
 
 
