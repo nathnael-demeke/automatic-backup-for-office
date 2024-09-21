@@ -126,6 +126,7 @@ for data in selected_directories:
     directory_path = data["directory_path"]
     full_message = upload_selected_folder_json(directory_path=directory_path, directory_name=directory_name)
     message_to_backup_server["DirectoriesData"].append(full_message)
+
 while True:
     try: 
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -137,7 +138,6 @@ while True:
         break
     except Exception as error:
         time.sleep(1.4)
-    
 while True: 
         second_request_server = socket.socket()
         print("hello")

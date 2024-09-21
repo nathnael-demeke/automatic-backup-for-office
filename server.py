@@ -13,6 +13,7 @@ clients = [
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(("0.0.0.0", 80))
+
 server.listen(2)
 
 
@@ -186,9 +187,11 @@ backup_worker = ThreadPoolExecutor(1)
 
 def upload_backup_to_ram():
     global backup_finished
+    global clients_backuped
     move_all_server_folders()
     upload_backup_folder_json()
     backup_finished = True
+    clients_backuped = 0
     print("backup finished")
 
 while True: 
